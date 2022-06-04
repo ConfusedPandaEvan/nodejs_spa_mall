@@ -18,7 +18,7 @@ router.get("/goods/cart", async (req, res) => {
     });
 
     res.json({
-        carts: results,
+        cart: results,
     });
 });
 
@@ -39,11 +39,11 @@ router.get("/goods", async (req, res) => {
 router.get("/goods/:goodsId", async (req, res) => {
     const { goodsId } = req.params;
 
-    const [detail] = await Goods.find({ goodsId: Number(goodsId) });
+    const [goods] = await Goods.find({ goodsId: Number(goodsId) });
     // const [detail] = goods.filter((ittem) => ittem.goodsId === Number(goodsId));
 
     res.json({
-        detail: detail,
+        goods,
     });
 });
 
@@ -78,16 +78,15 @@ router.put("/goods/:goodsId/cart", async (req, res) => {
     if (quantity < 1) {
         return res.status(400).json({
             errorMessage: "Only inputs 1 or above can be inputed"
-        });
-        
+        });        
     }
 
     const existCarts = await Cart.find({ goodsId: Number(goodsId) });
     if (!existCarts.length) {
-        return res.status(400).json({ success: false, errorMessage: "No item in the cart" });
+        await Cart.create({ goodsId: Number(goodsId), quantity});
+    } else{
+        await Cart.updateOne({ goodsId: Number(goodsId)}, { $set: { quantity } });
     }
-
-    await Cart.updateOne({ goodsId: Number(goodsId)}, { $set: { quantity } });
 
     res.json({ success: true });
 });
